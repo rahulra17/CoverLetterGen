@@ -34,5 +34,6 @@ These are required for document parsing and OCR support:
 > You can install all of these via Homebrew:
 ```bash
 brew install libmagic poppler tesseract
+```
 
 ## Dedicated to my roommate Joshua Moore on the day he moves out.
