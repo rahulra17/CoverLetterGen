@@ -17,7 +17,6 @@ def chunk_documents(docs, max_chars=3000):
                 buffer += "\n\n" + doc.page_content
             else:
                 chunks.append(buffer)
-                buffer = doc.append(buffer)
                 buffer = doc.page_content
     except Exception as e:
         raise RuntimeError(f"Failed to chunk_documents: {e}")

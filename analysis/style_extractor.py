@@ -4,7 +4,9 @@ from langchain.chains import LLMChain
 from langchain_core.messages import HumanMessage, SystemMessage
 from collections import Counter
 import json
-    
+import time
+import random    
+
 STYLE_ANALYSIS_PROMPT = """
         You are a professional writing coach and language analyst.
 
@@ -19,8 +21,20 @@ STYLE_ANALYSIS_PROMPT = """
         
         Your goal is to help personalize future LLM outputs by recreating this voice accurately.
         You will be given a string to extract style from.
+        Only return a raw JSON object. Do NOT wrap it in triple backticks or markdown formatting.
         """
- 
+def safe_invoke_with_backoff(llm, messages, max_retries=5):
+    for attempt in range(max_retries):
+        try:
+            return llm.invoke(messages)
+        except Exception as e:
+            if "ThrottlingException" in str(e):
+                wait_time = 2 ** attempt + random.uniform(0, 1)
+                print(f"⚠️ Throttled. Retrying in {wait_time:.2f} seconds...")
+                time.sleep(wait_time)
+            else:
+                raise e
+    raise RuntimeError("❌ Exceeded max retries due to throttling.")
 
 def grab_styles(chunks, llm):
     style_profiles = []
@@ -29,8 +43,11 @@ def grab_styles(chunks, llm):
             SystemMessage(content=STYLE_ANALYSIS_PROMPT),
             HumanMessage(content=f"Here is a writing sample: \n\n{chunk}")
         ]
-        response = llm.invoke(messages)
-        return style_profiles.append(json.loads(response.content))
+        response = safe_invoke_with_backoff(llm, messages, 5)
+        print("response successful")
+        print("🔎 Raw LLM response:", repr(response.content))
+        style_profiles.append(json.loads(response.content))
+    return style_profiles
 
 def aggregate_styles(profiles):
     def mode_or_concat(key):
