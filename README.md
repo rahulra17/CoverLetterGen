@@ -16,9 +16,9 @@ Say goodbye to boof-ass templates that AI resume reviewers throw in the trash.
 
 ## 💻 Built With
 
-- `neovim` + `NvChad` (because why not go full dev monk mode?)
+- `neovim` + `NvChad` (Aura Farming on github is diabolical cro)
 - LangChain
-- Amazon Bedrock (Claude or Titan)
+- Amazon Bedrock (Claude)
 
 ---
 
