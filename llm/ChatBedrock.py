@@ -1,5 +1,8 @@
 from langchain_aws import ChatBedrock
 import os
+from langchain.chains import LLMChain
+from langchain_core.prompts import ChatPromptTemplate
+
 
 ClaudeSonnet = ChatBedrock (
     model_id = "us.anthropic.claude-sonnet-4-20250514-v1:0",
@@ -49,4 +52,14 @@ Return only the final cover letter text, no additional commentary.
      """)
 ]
 
-
+def invoke_claude(style: dict, resume: dict, jd: dict):
+    prompt = ChatPromptTemplate.from_messages(messages) 
+    chain = prompt | ClaudeSonnet
+    result = chain.invoke(
+            {
+                "resume_json": resume,
+                "jd_json": jd,
+                "style_profile": style,
+            }
+        )
+    return result

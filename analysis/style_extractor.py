@@ -1,11 +1,11 @@
+from ingestion.doc_ingestor import load_documents
 from langchain.prompts import PromptTemplate
-from langchain_core.messages import SystemMessage, HumanMessage
-
-style_system_prompt = "" 
-
-def extract_style_summary(docs, llm) -> dict:
-    prompt = PromptTemplate.from_template(
-        """
+from langchain.chains import LLMChain
+from langchain_core.messages import HumanMessage, SystemMessage
+from collections import Counter
+import json
+    
+STYLE_ANALYSIS_PROMPT = """
         You are a professional writing coach and language analyst.
 
         Your task is to deeply analyze a user's writing sample and return a detailed profile of their writing style, which includes their tone, sentence        structure, vocabulary, and rhetorical habits.
@@ -18,11 +18,35 @@ def extract_style_summary(docs, llm) -> dict:
         - summary: A short paragraph summarizing their overall voice
         
         Your goal is to help personalize future LLM outputs by recreating this voice accurately.
-
-        Here is the sample: 
-        {content}
-        Do not include commentary or extra text — only return a clean JSON object.
+        You will be given a string to extract style from.
         """
-    )
-    chain = LLMChain(llm=llm, prompt=prompt) 
-    result = chain.run()
+ 
+
+def grab_styles(chunks, llm):
+    style_profiles = []
+    for chunk in chunks:
+        messages = [
+            SystemMessage(content=STYLE_ANALYSIS_PROMPT),
+            HumanMessage(content=f"Here is a writing sample: \n\n{chunk}")
+        ]
+        response = llm.invoke(messages)
+        return style_profiles.append(json.loads(response.content))
+
+def aggregate_styles(profiles):
+    def mode_or_concat(key):
+        values = [p[key] for p in profiles]
+        return Counter(values).most_common(1)[0][0]
+    return {
+        "tone": mode_or_concat("tone"),
+        "sentence_structure": mode_or_concat("sentence_structure"),
+        "vocabulary": mode_or_concat("vocabulary"),
+        "rhetorical_devices": mode_or_concat("rhetorical_devices"),
+        "summary": " ".join([p["summary"] for p in profiles])
+    } 
+
+def extract_full_style(chunks, llm):
+    profiles = grab_styles(chunks, llm)
+    return aggregate_styles(profiles)
+    
+    
+

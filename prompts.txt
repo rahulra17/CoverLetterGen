@@ -1,0 +1,11 @@
+"""
+From the user's resume, extract their skills as a list, project names as a list, previous experiences as a list, and generate a summary as a string. Respond
+in a json format in which the information is organized with these keys
+  - "Skills" 
+  - "Project Names"
+  - "Previous Experiences"
+  - "Summary"
+Text: 
+{resume_text}
+Respond in JSON format.
+"""

@@ -1,0 +1,36 @@
+Goals:
+Using the users voice, write a cover letter
+user inputs their google drive + projects, any kind of writing they've done
+  - google drive used to get their voice
+  - projects used to understand their experience
+
+- Projects will be inputted and I think they will be vectorized but I'm not too sure how this will work
+Google docs will for sure be vectorized with chromaDB, but it'll take some prompt engineering to do this, let's start out with the skeleton
+
+
+------ Journey Blog + Diary -------
+I need to think about the UI, how will the user interact with this? 
+They need to use OAuth to connect their google drive probably
+I'll let the user upload their projects/any kind of projects they want to showcase(only rlly meant for cs people)
+I need to let the user input their resume, parse it as a string and then put that into the Resume Parse fxn
+
+I am trying to figure out if I want to use RAG for style extraction. I think that would be a good way to do it 
+however, doing a simple prompt chain would be much simpler and would mean I don't need as much infra. I am 
+unsure if that captures style better though. Let's just say for now I'll try both methods out and see which one gives me a better cover letter.
+
+Sunday July 27th,
+
+I've ahd to make some decisions about hte code today. I've chosen to batch the style extraction. Basically,
+I am feeding in segments from 5 separate text files,google docs, whatever you wanna call it, and then only letting
+each string be a max of 3000 ccharacters so that the llm doesn't start tweaking and stuff like that. I'm calling each segments
+a chunk and then I'll probably have max 10 chunks, I need to enforce this somehow since I don't wanna break my bank on tokens or
+make Anthropic mad by acciedntly using 6 million tokens for no reason. That would also probably be harsh on the bank account as well. 
+Other than that, I am modularizing this code and tring to follow these principles that I learned in my OOP class I forgot what the fuk they
+were something like open close, idk they were these three principles that I have to brush up on and I want my code to reflect this. 
+Overall I think I'm making good progress, I'm actually downloading a library locally right now which actually might FUCK my storage and computation 
+but I don't wanna go through ANOTHER API key process bruh like come on. Idk if it's open source but I'd rather just run stuff locally for now. 
+if this fails to load, I think I need to blow up my entire venv because I know some wheels failed which actually might be a tragedy if I run this
+and there's some weird ass fukin library error. Worst case scenario, I'll migrate this code to the UTCS machines and play with it there while I delete
+this chopped ahh virtual env. Anyways, I'm gonna put everything together in the main file now and that should be the backend ayyyyy lfg. lowkey 
+I have not tested my code for anything but making sure there are no runtime errors in each feature file soooooo i actually might be doubled 
+chopped cheese rn we'll see though.

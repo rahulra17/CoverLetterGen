@@ -1,0 +1,3 @@
+Set up git versioning
+install Langchain AWS
+
