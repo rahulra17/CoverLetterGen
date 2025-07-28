@@ -34,3 +34,15 @@ and there's some weird ass fukin library error. Worst case scenario, I'll migrat
 this chopped ahh virtual env. Anyways, I'm gonna put everything together in the main file now and that should be the backend ayyyyy lfg. lowkey 
 I have not tested my code for anything but making sure there are no runtime errors in each feature file soooooo i actually might be doubled 
 chopped cheese rn we'll see though.
+
+I didn't realize these libraries would have so many fucking deprecations man damnit 
+that's okay I'll just get the new way of doing it. I am running into issues with LLMChain
+since APPARENTLY it's been deprecated.
+
+Now I'm dealing with fitting the API constraints. I need to make the least amount of API calls I can't just 
+treat this like some random toy because AWS is literally telling me that I'm giving it too many requests which is kinda
+crazy because it's just three pretty short documents but what do I know i guess damn.
+
+That was fun. I actually really enjoyed coding this, and now I'm done. I learned a lot about batching input, how 
+langchain works in a small subset and I also learned more about barebones bedrock antics. I really hope I dont wake up to 
+a $10 dollar charge because of how many tokens I've used.
