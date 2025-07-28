@@ -21,9 +21,11 @@ def chunk_documents(docs, max_chars=3000):
     except Exception as e:
         raise RuntimeError(f"Failed to chunk_documents: {e}")
     if buffer:
-        chunks.append(buffer)
+        chunks.append(buffer.strip())
     else:
         print("Buffer was null, idk why but you should look into it")
     return chunks  
 
-
+def batch_chunks(chunks, batch_size=3):
+    for i in range(0, len(chunks), batch_size):
+        yield "\n\n---\n\n".join(chunks[i:i+batch_size])

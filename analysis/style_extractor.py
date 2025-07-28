@@ -6,6 +6,7 @@ from collections import Counter
 import json
 import time
 import random    
+from llm.ChatBedrock import safe_invoke_with_backoff
 
 STYLE_ANALYSIS_PROMPT = """
         You are a professional writing coach and language analyst.
@@ -21,29 +22,19 @@ STYLE_ANALYSIS_PROMPT = """
         
         Your goal is to help personalize future LLM outputs by recreating this voice accurately.
         You will be given a string to extract style from.
-        Only return a raw JSON object. Do NOT wrap it in triple backticks or markdown formatting.
+        Only return a raw JSON object. If values contain quotation marks, escape them using a backslash (\\). 
+        Do not include any markdown (no triple backticks). Only return raw JSON.
         """
-def safe_invoke_with_backoff(llm, messages, max_retries=5):
-    for attempt in range(max_retries):
-        try:
-            return llm.invoke(messages)
-        except Exception as e:
-            if "ThrottlingException" in str(e):
-                wait_time = 2 ** attempt + random.uniform(0, 1)
-                print(f"⚠️ Throttled. Retrying in {wait_time:.2f} seconds...")
-                time.sleep(wait_time)
-            else:
-                raise e
-    raise RuntimeError("❌ Exceeded max retries due to throttling.")
-
-def grab_styles(chunks, llm):
+def grab_styles(batch_chunks, llm):
     style_profiles = []
-    for chunk in chunks:
+    for i, chunk in enumerate(batch_chunks):
+        print(f"Running crazy calculations on Batch {i}, please wait, hopefully it doesn't break!")
         messages = [
             SystemMessage(content=STYLE_ANALYSIS_PROMPT),
             HumanMessage(content=f"Here is a writing sample: \n\n{chunk}")
         ]
         response = safe_invoke_with_backoff(llm, messages, 5)
+        # Extra measures to avoid throttling errors
         print("response successful")
         print("🔎 Raw LLM response:", repr(response.content))
         style_profiles.append(json.loads(response.content))

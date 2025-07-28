@@ -2,10 +2,18 @@ from langchain_aws import ChatBedrock
 import os
 from langchain.chains import LLMChain
 from langchain_core.prompts import ChatPromptTemplate
-
+import time
+import random
 
 ClaudeSonnet = ChatBedrock (
     model_id = "us.anthropic.claude-sonnet-4-20250514-v1:0",
+    region_name = os.getenv("AWS_DEFAULT_REGION"),
+    aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID"), 
+    aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY"),
+)
+
+ClaudeHaiku = ChatBedrock(
+    model_id = "us.anthropic.claude-3-haiku-20240307-v1:0",
     region_name = os.getenv("AWS_DEFAULT_REGION"),
     aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID"), 
     aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY"),
@@ -52,14 +60,40 @@ Return only the final cover letter text, no additional commentary.
      """)
 ]
 
-def invoke_claude(style: dict, resume: dict, jd: dict):
-    prompt = ChatPromptTemplate.from_messages(messages) 
-    chain = prompt | ClaudeSonnet
-    result = chain.invoke(
-            {
+def safe_invoke_with_backoff(llm, messages, max_retries=5):
+    for attempt in range(max_retries):
+        try:
+            return llm.invoke(messages)
+        except Exception as e:
+            if "ThrottlingException" in str(e):
+                wait_time = 2 ** attempt + random.uniform(0, 1)
+                print(f"⚠️ Throttled. Retrying in {wait_time:.2f} seconds...")
+                time.sleep(wait_time)
+            else:
+                raise e
+    raise RuntimeError("❌ Exceeded max retries due to throttling.")
+
+def safe_chain_invoke_with_backoff(chain, resume, jd, style, max_retries=5):
+    for attempt in range(max_retries):
+        try:
+            return chain.invoke({
                 "resume_json": resume,
                 "jd_json": jd,
                 "style_profile": style,
-            }
-        )
+            })
+        except Exception as e:
+            if "ThrottlingException" in str(e):
+                wait_time = 2 ** attempt + random.uniform(0, 1)
+                print(f"⚠️ Throttled. Retrying in {wait_time:.2f} seconds...")
+                time.sleep(wait_time)
+            else:
+                raise e
+    raise RuntimeError("❌ Exceeded max retries due to throttling.")
+
+   
+
+def invoke_claude(style: dict, resume: dict, jd: dict):
+    prompt = ChatPromptTemplate.from_messages(messages) 
+    chain = prompt | ClaudeSonnet
+    result = safe_chain_invoke_with_backoff(chain, resume, jd, style)
     return result
