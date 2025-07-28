@@ -37,6 +37,7 @@ Your task is to write a cover letter that:
 - Uses a confident, sharp, and human tone — not robotic or overly generic
 - Includes specific details rather than clichés or fluff
 - Follows proper formatting and flows naturally
+- Include one or two run-on sentences and one or two grammatical errors to make it sound more human. It should score a 92 on grammarly
 
 Structure the cover letter in 3–5 paragraphs:
 1. A strong, personal hook that shows interest in the company/role
