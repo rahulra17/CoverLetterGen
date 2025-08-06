@@ -96,5 +96,5 @@ def safe_chain_invoke_with_backoff(chain, resume, jd, style, max_retries=5):
 def invoke_claude(style: dict, resume: dict, jd: dict):
     prompt = ChatPromptTemplate.from_messages(messages) 
     chain = prompt | ClaudeSonnet
-    result = safe_chain_invoke_with_backoff(chain, resume, jd, style)
+    result = safe_chain_invoke_with_backoff(chain, resume, jd, style).dict()
     return result

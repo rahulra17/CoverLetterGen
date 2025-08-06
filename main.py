@@ -113,6 +113,8 @@ if st.session_state.style_profile and st.session_state.resume_txt and st.session
                 resume_json = parse_resume(st.session_state.resume_txt, haiku)
                 jd_json = parse_job_description(st.session_state.jd_text, haiku)
                 result = invoke_claude(st.session_state.style_profile, resume_json, jd_json)
+                print("LOOOOOK HERERERERE")
+                print(type(result))
             except Exception as e:
                 st.error("Something happened with our friend so he can't help us :(")
             st.markdown(f"***Cover Letter: {result}")
