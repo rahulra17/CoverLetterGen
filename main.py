@@ -104,7 +104,7 @@ if st.session_state.jd_text:
     st.markdown(f"***Job Description: {jd_input[:100]}{'...' if len(jd_input) > 100 else ''}")
 
 if "cover_letter" not in st.session_state:
-    st.session_state.cover_letter = ""
+    st.session_state.cover_letter = {}
 
 if st.session_state.style_profile and st.session_state.resume_txt and st.session_state.jd_text:
     if st.button("Create Cover Letter"):
@@ -115,9 +115,8 @@ if st.session_state.style_profile and st.session_state.resume_txt and st.session
                 result = invoke_claude(st.session_state.style_profile, resume_json, jd_json)
             except Exception as e:
                 st.error("Something happened with our friend so he can't help us :(")
-            result = str(result)
             st.markdown(f"***Cover Letter: {result}")
-            st.session_state.cover_letter = result
+            st.session_state.cover_letter = result.get("content")
             st.success("Cover Letter Generated!")
 
 if st.session_state.cover_letter:
