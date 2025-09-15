@@ -75,7 +75,7 @@ if "resume_txt" not in st.session_state:
     st.session_state.resume_txt = ""
 st.title("Give us your Resume plsplspslspl")
 
-resume_input = st.text_area("Enter your resume(j copy and paste it bro)", key="Resume_box")
+resume_input = st.text_area("Enter your resume(copy and paste it!)", key="Resume_box")
 if st.button("Submit Resume"):
     with st.spinner("Logging Resume"):
         if resume_input.strip():
@@ -92,7 +92,7 @@ if "jd_text" not in st.session_state:
     st.session_state.jd_text = ""
 st.title("PLEASE give us a j*b description here we beg")
 
-jd_input = st.text_area("Enter the job description (j copy and paste it bro)", key="Job_description_box")
+jd_input = st.text_area("Enter the job description (copy and paste it!)", key="Job_description_box")
 if st.button("Submit Job Descrption"):
     with st.spinner("Oh wow this job looks cool"):
         st.subheader(f"Here is the jd input: {jd_input}")
@@ -113,8 +113,6 @@ if st.session_state.style_profile and st.session_state.resume_txt and st.session
                 resume_json = parse_resume(st.session_state.resume_txt, haiku)
                 jd_json = parse_job_description(st.session_state.jd_text, haiku)
                 result = invoke_claude(st.session_state.style_profile, resume_json, jd_json)
-                print("LOOOOOK HERERERERE")
-                print(type(result))
             except Exception as e:
                 st.error("Something happened with our friend so he can't help us :(")
             st.markdown(f"***Cover Letter: {result}")
