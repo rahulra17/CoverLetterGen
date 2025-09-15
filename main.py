@@ -82,7 +82,7 @@ if st.button("Submit Resume"):
             st.session_state.resume_txt=resume_input
             st.success("Resume added!")
         else:
-            st.warning("Quit playing and put your damn resume in")
+            st.warning("put your damn resume in!")
 
 if st.session_state.resume_txt:
     st.subheader("Submitted Resume:")
@@ -92,15 +92,15 @@ if "jd_text" not in st.session_state:
     st.session_state.jd_text = ""
 st.title("PLEASE give us a j*b description here we beg")
 
-jd_input = st.text_area("Enter the j*b description (j copy and paste it bro)", key="Job_description_box")
-if st.button("Submit J*b Descrption"):
-    with st.spinner("Oh wow this j*b looks cool"):
+jd_input = st.text_area("Enter the job description (j copy and paste it bro)", key="Job_description_box")
+if st.button("Submit Job Descrption"):
+    with st.spinner("Oh wow this job looks cool"):
         st.subheader(f"Here is the jd input: {jd_input}")
         st.session_state.jd_text = jd_input
         st.success("Job Description added!")
 
 if st.session_state.jd_text:
-    st.subheader("Submitted J*b description!")
+    st.subheader("Submitted Job description!")
     st.markdown(f"***Job Description: {jd_input[:100]}{'...' if len(jd_input) > 100 else ''}")
 
 if "cover_letter" not in st.session_state:
