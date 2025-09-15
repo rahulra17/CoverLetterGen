@@ -90,7 +90,7 @@ if st.session_state.resume_txt:
 
 if "jd_text" not in st.session_state:
     st.session_state.jd_text = ""
-st.title("PLEASE give us a j*b description here we beg")
+st.title("Job Description Time!")
 
 jd_input = st.text_area("Enter the job description (copy and paste it!)", key="Job_description_box")
 if st.button("Submit Job Descrption"):
