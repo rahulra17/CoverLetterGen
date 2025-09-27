@@ -624,7 +624,7 @@ def page4_final_cover_letter():
         
         # Action buttons for view mode
         st.markdown("#### 📋 Actions")
-        col1, col2, col3 = st.columns(3)
+        col1, col2 = st.columns(2)
         
         with col1:
             if st.button("📋 Copy to Clipboard", type="primary", use_container_width=True):
@@ -640,13 +640,6 @@ def page4_final_cover_letter():
                     mime="text/plain",
                     use_container_width=True
                 )
-        
-        with col3:
-            if st.button("🔄 Generate New Version", type="secondary", use_container_width=True):
-                st.session_state.cover_letter = ""
-                st.session_state.editing_mode = False
-                st.success("✅ Cover letter cleared. Go back to Step 3 to generate a new version.")
-                st.rerun()
         
         # AI Tweaking section in view mode
         st.markdown("---")
