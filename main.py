@@ -681,30 +681,6 @@ def page4_final_cover_letter():
                     except Exception as e:
                         st.error(f"❌ Error applying AI tweaks: {e}")
         
-        # Show a preview of the current cover letter if there are changes
-        if st.session_state.edited_cover_letter and st.session_state.edited_cover_letter != st.session_state.cover_letter:
-            st.markdown("---")
-            st.markdown("#### 📊 Changes Preview")
-            st.info("💡 **Tip:** Your cover letter has been updated! Switch to edit mode to see all changes.")
-            
-            # Show a preview of the updated cover letter
-            with st.expander("👀 Preview Updated Cover Letter", expanded=True):
-                st.markdown("""
-                <div style="
-                    background-color: #f8f9fa;
-                    border: 2px solid #28a745;
-                    border-radius: 10px;
-                    padding: 20px;
-                    margin: 10px 0;
-                    font-family: 'Georgia', serif;
-                    line-height: 1.6;
-                    white-space: pre-wrap;
-                ">
-                """, unsafe_allow_html=True)
-                
-                st.markdown(st.session_state.edited_cover_letter)
-                
-                st.markdown("</div>", unsafe_allow_html=True)
     
     else:
         # EDIT MODE: Allow manual editing and AI tweaking
@@ -781,23 +757,6 @@ def page4_final_cover_letter():
                     except Exception as e:
                         st.error(f"❌ Error applying AI tweaks: {e}")
         
-        # Show comparison if there are changes
-        if st.session_state.edited_cover_letter != st.session_state.cover_letter:
-            st.markdown("---")
-            st.markdown("#### 📊 Changes Preview")
-            
-            # Show a success message if changes were made
-            st.success("✅ Your cover letter has been modified! Compare the versions below.")
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.markdown("**Original Version**")
-                st.text_area("", value=st.session_state.cover_letter, height=200, disabled=True, key="original_preview")
-            
-            with col2:
-                st.markdown("**Edited Version**")
-                st.text_area("", value=st.session_state.edited_cover_letter, height=200, disabled=True, key="edited_preview")
     
     # Style profile summary
     if st.session_state.style_profile:
