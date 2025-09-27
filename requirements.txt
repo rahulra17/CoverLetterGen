@@ -1,4 +1,5 @@
-# LangChain core
+# Core dependencies
+streamlit>=1.28.0
 langchain>=0.1.16
 langchain-community>=0.0.36
 langchainhub>=0.1.14
@@ -6,3 +7,6 @@ langchain_aws
 langchain_core
 unstructured
 
+# Additional dependencies for your app
+boto3
+python-dotenv

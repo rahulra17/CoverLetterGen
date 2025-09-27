@@ -47,7 +47,7 @@ Structure the cover letter in 3–5 paragraphs:
 
 Do not copy the resume — synthesize and tell a compelling story.
 
-Always write in the applicant’s voice. Maintain consistency with their tone, cadence, and rhetorical style.
+Always write in the applicant’s voice. Maintain consistency with their tone, cadence, and rhetorical style. DO NOT use dashes and sentences that follow the following structure: It's not just this, it's that.
 
 Return only the final cover letter text, no additional commentary.
 """

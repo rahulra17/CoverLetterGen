@@ -27,6 +27,12 @@ def init_session_state():
         st.session_state.cover_letter = ""
     if "current_page" not in st.session_state:
         st.session_state.current_page = 1
+    if "editing_mode" not in st.session_state:
+        st.session_state.editing_mode = False
+    if "edited_cover_letter" not in st.session_state:
+        st.session_state.edited_cover_letter = ""
+    if "ai_feedback" not in st.session_state:
+        st.session_state.ai_feedback = ""
 
 # Initialize LLM models
 try:
@@ -44,6 +50,58 @@ def show_progress_bar():
     st.progress(progress)
     st.caption(f"Step {st.session_state.current_page} of 4")
 
+def check_complete(current_state, current_page):
+    """Check if the current page is complete based on required data"""
+    if current_page == 1:  # Writing Samples page
+        return len(current_state.writing_samples) > 0 and bool(current_state.style_profile)
+    elif current_page == 2:  # Resume & Job Description page
+        return bool(current_state.resume_txt) and bool(current_state.jd_text)
+    elif current_page == 3:  # Cover Letter Generation page
+        return bool(current_state.cover_letter)
+    elif current_page == 4:  # Final page - always allow navigation
+        return True
+    else:
+        return False
+
+def ai_tweak_cover_letter(cover_letter, feedback, style_profile):
+    """Use AI to tweak the cover letter based on user feedback"""
+    try:
+        # Create a prompt for AI tweaking
+        tweak_prompt = f"""
+        You are an expert cover letter editor. The user has provided feedback on their cover letter and wants you to improve it.
+
+        ORIGINAL COVER LETTER:
+        {cover_letter}
+
+        USER FEEDBACK:
+        {feedback}
+
+        WRITING STYLE TO MAINTAIN:
+        Tone: {style_profile.get('tone', 'professional')}
+        Structure: {style_profile.get('sentence_structure', 'varied')}
+        Vocabulary: {style_profile.get('vocabulary', 'professional')}
+        Rhetorical Devices: {style_profile.get('rhetorical_devices', 'none')}
+
+        INSTRUCTIONS:
+        1. Address the user's specific feedback
+        2. Maintain the original writing style and voice
+        3. Keep the same overall structure and length
+        4. Make the improvements natural and seamless
+        5. Return only the improved cover letter text, no additional commentary
+
+        IMPROVED COVER LETTER:
+        """
+        
+        # Use the haiku model for tweaking (faster and cheaper)
+        result = haiku.invoke(tweak_prompt)
+        return result.content if hasattr(result, 'content') else str(result)
+        
+    except Exception as e:
+        st.error(f"Error tweaking cover letter: {e}")
+        return cover_letter
+     
+
+    
 def show_navigation():
     # Create a container that will be positioned at the bottom
     with st.container():
@@ -61,9 +119,14 @@ def show_navigation():
     
     with col3:
         if st.session_state.current_page < 4:
-            if st.button("Next →", key="next_btn", type="primary", use_container_width=True):
-                st.session_state.current_page += 1
-                st.rerun()
+            if check_complete(st.session_state, st.session_state.current_page):
+                if st.button("Next →", key="next_btn", type="primary", use_container_width=True):
+                    st.session_state.current_page += 1
+                    st.rerun()
+            else:
+                # Show disabled button with tooltip
+                st.button("Next →", key="next_btn_disabled", use_container_width=True, disabled=True, 
+                         help="Complete all required fields on this page to continue")
 
 # Page 1: Writing Samples Collection
 def page1_writing_samples():
@@ -107,6 +170,12 @@ def page1_writing_samples():
     # Display submitted samples
     if st.session_state.writing_samples:
         st.subheader("📋 Your Writing Samples")
+        
+        # Show completion status
+        if st.session_state.style_profile:
+            st.success("✅ Writing style analyzed successfully!")
+        else:
+            st.info("💡 Add samples and click 'Analyze My Writing Style' to continue")
         
         # Add delete functionality for each sample
         for i, sample in enumerate(st.session_state.writing_samples, 1):
@@ -257,7 +326,24 @@ def page2_resume_job():
             with st.expander("Preview Job Description"):
                 st.text(st.session_state.jd_text[:500] + "..." if len(st.session_state.jd_text) > 500 else st.session_state.jd_text)
     
-    # Validation
+    # Validation with clear completion status
+    st.markdown("---")
+    st.subheader("📊 Completion Status")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.session_state.resume_txt:
+            st.success("✅ Resume uploaded")
+        else:
+            st.warning("⚠️ Resume required")
+    
+    with col2:
+        if st.session_state.jd_text:
+            st.success("✅ Job description uploaded")
+        else:
+            st.warning("⚠️ Job description required")
+    
     if st.session_state.resume_txt and st.session_state.jd_text:
         st.success("🎉 Ready to generate your cover letter!")
     else:
@@ -404,6 +490,9 @@ def page3_generation():
                 </div>
                 """, unsafe_allow_html=True)
             st.markdown("---")
+            
+            # Show completion status
+            st.info("💡 Generate a cover letter to continue to the final step")
     
     # Full-width detailed style analysis expander
     if st.session_state.style_profile:
@@ -480,67 +569,211 @@ def page3_generation():
 # Page 4: Final Cover Letter Display
 def page4_final_cover_letter():
     st.title("📄 Step 4: Your Final Cover Letter")
-    st.markdown("Review and finalize your personalized cover letter.")
+    st.markdown("Review, edit, and finalize your personalized cover letter.")
     
     # Check prerequisites
     if not st.session_state.cover_letter:
         st.error("❌ Please complete Step 3 (Generate Cover Letter) first.")
         return
     
-    st.success("✅ Cover letter ready for review!")
+    st.success("✅ Cover letter ready for review and editing!")
     
-    # Main cover letter display
-    st.markdown("---")
-    
-    # Cover letter in a professional document-style container
-    with st.container():
-        st.markdown("""
-        <div style="
-            background-color: #ffffff;
-            border: 3px solid #2c3e50;
-            border-radius: 15px;
-            padding: 40px;
-            margin: 20px 0;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            font-family: 'Georgia', serif;
-            line-height: 1.8;
-            white-space: pre-wrap;
-            font-size: 16px;
-            color: #2c3e50;
-        ">
-        """, unsafe_allow_html=True)
-        
-        # Display the cover letter content
-        st.markdown(st.session_state.cover_letter)
-        
-        st.markdown("</div>", unsafe_allow_html=True)
-    
-    st.markdown("---")
-    
-    # Action buttons
-    st.markdown("#### 📋 Actions")
-    col1, col2, col3 = st.columns(3)
+    # Toggle between view and edit modes
+    col1, col2 = st.columns([1, 1])
     
     with col1:
-        if st.button("📋 Copy to Clipboard", type="primary", use_container_width=True):
-            st.code(st.session_state.cover_letter, language=None)
-            st.success("✅ Cover letter copied to clipboard!")
+        if not st.session_state.editing_mode:
+            if st.button("✏️ Edit Cover Letter", type="primary", use_container_width=True):
+                st.session_state.editing_mode = True
+                st.session_state.edited_cover_letter = st.session_state.cover_letter
+                st.rerun()
+        else:
+            if st.button("👁️ View Cover Letter", type="secondary", use_container_width=True):
+                st.session_state.editing_mode = False
+                st.rerun()
     
-    with col2:
-        if st.button("💾 Download as Text", type="secondary", use_container_width=True):
-            st.download_button(
-                label="📄 Download Cover Letter",
-                data=st.session_state.cover_letter,
-                file_name="cover_letter.txt",
-                mime="text/plain",
-                use_container_width=True
-            )
     
-    with col3:
-        if st.button("🔄 Generate New Version", type="secondary", use_container_width=True):
-            st.session_state.cover_letter = ""
-            st.success("✅ Cover letter cleared. Go back to Step 3 to generate a new version.")
-            st.rerun()
+    st.markdown("---")
+    
+    if not st.session_state.editing_mode:
+        # VIEW MODE: Display the cover letter
+        st.subheader("📄 Your Cover Letter")
+        
+        # Cover letter in a professional document-style container
+        with st.container():
+            st.markdown("""
+            <div style="
+                background-color: #ffffff;
+                border: 3px solid #2c3e50;
+                border-radius: 15px;
+                padding: 40px;
+                margin: 20px 0;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+                font-family: 'Georgia', serif;
+                line-height: 1.8;
+                white-space: pre-wrap;
+                font-size: 16px;
+                color: #2c3e50;
+            ">
+            """, unsafe_allow_html=True)
+            
+            # Display the cover letter content
+            st.markdown(st.session_state.cover_letter)
+            
+            st.markdown("</div>", unsafe_allow_html=True)
+        
+        # Action buttons for view mode
+        st.markdown("#### 📋 Actions")
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            if st.button("📋 Copy to Clipboard", type="primary", use_container_width=True):
+                st.code(st.session_state.cover_letter, language=None)
+                st.success("✅ Cover letter copied to clipboard!")
+        
+        with col2:
+            if st.button("💾 Download as Text", type="secondary", use_container_width=True):
+                st.download_button(
+                    label="📄 Download Cover Letter",
+                    data=st.session_state.cover_letter,
+                    file_name="cover_letter.txt",
+                    mime="text/plain",
+                    use_container_width=True
+                )
+        
+        with col3:
+            if st.button("🔄 Generate New Version", type="secondary", use_container_width=True):
+                st.session_state.cover_letter = ""
+                st.session_state.editing_mode = False
+                st.success("✅ Cover letter cleared. Go back to Step 3 to generate a new version.")
+                st.rerun()
+        
+        # AI Tweaking section in view mode
+        st.markdown("---")
+        st.markdown("#### 🤖 Quick AI Tweaks")
+        st.info("💡 **Tip:** Want to improve your cover letter? Tell the AI what to change and it will apply tweaks while maintaining your writing style.")
+        
+        # Feedback input for view mode
+        feedback_view = st.text_area(
+            "What would you like to improve? (e.g., 'Make it more confident', 'Add more specific examples', 'Make it shorter'):",
+            value="",
+            height=80,
+            key="ai_feedback_view",
+            placeholder="Describe what you'd like to change about your cover letter..."
+        )
+        
+        if feedback_view:
+            # AI tweak button for view mode
+            if st.button("🔄 Retry with Tweaks", type="primary", use_container_width=True):
+                with st.spinner("AI is analyzing and improving your cover letter..."):
+                    try:
+                        # Use AI to tweak the cover letter
+                        improved_letter = ai_tweak_cover_letter(
+                            st.session_state.cover_letter, 
+                            feedback_view, 
+                            st.session_state.style_profile
+                        )
+                        
+                        # Update the cover letter and switch to edit mode to show changes
+                        st.session_state.cover_letter = improved_letter
+                        st.session_state.edited_cover_letter = improved_letter
+                        st.session_state.editing_mode = True
+                        st.success("🎉 AI tweaks applied! Switched to edit mode to show changes.")
+                        st.rerun()
+                        
+                    except Exception as e:
+                        st.error(f"❌ Error applying AI tweaks: {e}")
+    
+    else:
+        # EDIT MODE: Allow manual editing and AI tweaking
+        st.subheader("✏️ Edit Your Cover Letter")
+        
+        # Manual editing section
+        st.markdown("#### 📝 Manual Editing")
+        edited_text = st.text_area(
+            "Edit your cover letter below:",
+            value=st.session_state.edited_cover_letter,
+            height=400,
+            key="manual_edit"
+        )
+        
+        # Update the edited version
+        if edited_text != st.session_state.edited_cover_letter:
+            st.session_state.edited_cover_letter = edited_text
+        
+        # Action buttons for manual editing
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            if st.button("💾 Save Changes", type="primary", use_container_width=True):
+                st.session_state.cover_letter = st.session_state.edited_cover_letter
+                st.session_state.editing_mode = False
+                st.success("✅ Changes saved!")
+                st.rerun()
+        
+        with col2:
+            if st.button("❌ Cancel Changes", type="secondary", use_container_width=True):
+                st.session_state.edited_cover_letter = st.session_state.cover_letter
+                st.session_state.editing_mode = False
+                st.success("✅ Changes cancelled.")
+                st.rerun()
+        
+        with col3:
+            if st.button("🔄 Reset to Original", type="secondary", use_container_width=True):
+                st.session_state.edited_cover_letter = st.session_state.cover_letter
+                st.success("✅ Reset to original version.")
+                st.rerun()
+        
+        st.markdown("---")
+        
+        # AI Tweaking section
+        st.markdown("#### 🤖 AI Tweaks")
+        st.info("💡 **Tip:** Tell the AI what you'd like to improve, and it will tweak your cover letter while maintaining your writing style.")
+        
+        # Feedback input
+        feedback = st.text_area(
+            "What would you like to improve? (e.g., 'Make it more confident', 'Add more specific examples', 'Make it shorter'):",
+            value=st.session_state.ai_feedback,
+            height=100,
+            key="ai_feedback_input",
+            placeholder="Describe what you'd like to change about your cover letter..."
+        )
+        
+        if feedback:
+            st.session_state.ai_feedback = feedback
+            
+            # AI tweak button
+            if st.button("🔄 Retry with Tweaks", type="primary", use_container_width=True):
+                with st.spinner("AI is analyzing and improving your cover letter..."):
+                    try:
+                        # Use AI to tweak the cover letter
+                        improved_letter = ai_tweak_cover_letter(
+                            st.session_state.edited_cover_letter, 
+                            feedback, 
+                            st.session_state.style_profile
+                        )
+                        
+                        # Update the edited version
+                        st.session_state.edited_cover_letter = improved_letter
+                        st.success("🎉 AI tweaks applied! Review the changes above.")
+                        
+                    except Exception as e:
+                        st.error(f"❌ Error applying AI tweaks: {e}")
+        
+        # Show comparison if there are changes
+        if st.session_state.edited_cover_letter != st.session_state.cover_letter:
+            st.markdown("---")
+            st.markdown("#### 📊 Changes Preview")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("**Original Version**")
+                st.text_area("", value=st.session_state.cover_letter, height=200, disabled=True, key="original_preview")
+            
+            with col2:
+                st.markdown("**Edited Version**")
+                st.text_area("", value=st.session_state.edited_cover_letter, height=200, disabled=True, key="edited_preview")
     
     # Style profile summary
     if st.session_state.style_profile:
