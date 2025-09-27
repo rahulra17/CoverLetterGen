@@ -731,7 +731,7 @@ def page4_final_cover_letter():
             st.session_state.edited_cover_letter = edited_text
         
         # Action buttons for manual editing
-        col1, col2, col3 = st.columns(3)
+        col1, col2 = st.columns(2)
         
         with col1:
             if st.button("💾 Save Changes", type="primary", use_container_width=True):
@@ -745,12 +745,6 @@ def page4_final_cover_letter():
                 st.session_state.edited_cover_letter = st.session_state.cover_letter
                 st.session_state.editing_mode = False
                 st.success("✅ Changes cancelled.")
-                st.rerun()
-        
-        with col3:
-            if st.button("🔄 Reset to Original", type="secondary", use_container_width=True):
-                st.session_state.edited_cover_letter = st.session_state.cover_letter
-                st.success("✅ Reset to original version.")
                 st.rerun()
         
         st.markdown("---")
