@@ -1,6 +1,5 @@
 from ingestion.doc_ingestor import load_documents
 from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
 from langchain_core.messages import HumanMessage, SystemMessage
 from collections import Counter
 import json

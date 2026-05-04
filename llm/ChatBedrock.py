@@ -1,6 +1,5 @@
 from langchain_aws import ChatBedrock
 import os
-from langchain.chains import LLMChain
 from langchain_core.prompts import ChatPromptTemplate
 import time
 import random
