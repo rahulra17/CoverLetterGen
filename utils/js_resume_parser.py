@@ -1,5 +1,4 @@
 from langchain_core.prompts import PromptTemplate
-from langchain.chains import LLMChain
 import time
 
 def parse_resume(resume_text: str, llm) -> dict:
